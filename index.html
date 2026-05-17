@@ -198,25 +198,39 @@ footer{text-align:center;padding:32px 0 12px;color:var(--t3);font-size:.7rem;fon
 <div class="tab" data-s="newlink" onclick="switchSrc('newlink')">新订阅链接</div>
 <div class="tab" data-s="newproxy" onclick="switchSrc('newproxy')">新节点列表</div>
 </div>
+
 <div id="src-filter" class="src-pane">
 <div class="alert alert-i">选择地区自动生成正则，也可手动编辑（自动排除已勾选节点避免循环）</div>
 <p class="help" style="margin-bottom:6px">快速选择地区：</p>
 <div class="region-grid" id="region-grid"></div>
 <div class="field"><label>正则表达式 <span style="font-weight:300;color:var(--t3)">(可手动修改)</span></label><input type="text" id="f-regex" value="" oninput="onRegexManualEdit()"></div>
-<div id="f-prev" class="hide"><p class="help">匹配 <span id="f-cnt">0</span> 个节点：</p><div class="nlist" id="f-list" style="max-height:150px"></div></div>
+<div id="f-prev" class="hide">
+<p class="help">匹配 <span id="f-cnt">0</span> 个节点：</p>
+<div class="ctrls">
+<input type="text" class="search" id="f-search" placeholder="🔍 搜索匹配节点..." oninput="renderFilterNodes()">
+<button class="btn btn-sm" onclick="allFilterNodes(true)">全选</button>
+<button class="btn btn-sm" onclick="allFilterNodes(false)">全不选</button>
+<span class="badge" id="f-sel-ct">0 / 0</span>
 </div>
+<div class="nlist" id="f-list" style="max-height:200px"></div>
+</div>
+</div>
+
 <div id="src-newlink" class="src-pane hide">
 <div class="alert alert-i">新订阅 URL → <code>proxy-providers</code>，策略组用 <code>use:</code> 引用</div>
 <div class="row-2">
 <div class="field"><label>订阅名称</label><input type="text" id="cl-name" value="链式订阅"></div>
-<div class="field"><label>节点前缀 (留空不加)</label><input type="text" id="cl-pfx" placeholder="留空不添加前缀"></div>
+<div class="field"><label>节点前缀 (留空自动生成)</label><input type="text" id="cl-pfx" placeholder="留空自动: 订阅名+emoji"></div>
 </div>
 <div class="field"><label>订阅 URL</label><input type="url" id="cl-url" placeholder="https://..."></div>
 <div class="row-2">
 <div class="field"><label>更新策略</label><select id="cl-int"><option value="manual">不自动更新</option><option value="daily">24h 自动更新</option></select></div>
-<div class="field"><label>正则过滤</label><input type="text" id="cl-filter" placeholder="留空使用全部"></div>
+<div class="field"><label>正则过滤 (留空不过滤)</label><input type="text" id="cl-filter" placeholder="留空使用全部节点" oninput="onClFilterManualEdit()"></div>
 </div>
+<p class="help" style="margin-top:4px;margin-bottom:6px">快速选择地区过滤：</p>
+<div class="region-grid" id="cl-region-grid"></div>
 </div>
+
 <div id="src-newproxy" class="src-pane hide">
 <div class="alert alert-i">粘贴节点 YAML → 加入 <code>proxies</code>，策略组用 <code>proxies:</code> 引用</div>
 <div class="field"><label>节点列表</label><textarea id="ep-c" rows="5" placeholder="- { name: ..., type: ss, ... }" oninput="onEpChange()"></textarea></div>
@@ -262,9 +276,7 @@ var PRESETS=[
 {id:'geo',name:'GeoSite \u6A21\u677F',desc:'GeoSite / GeoIP \u89C4\u5219\u5206\u6D41',icon:'\u{1F4E1}',url:'https://raw.githubusercontent.com/paooloin/clash-rules/refs/heads/main/config/geo.yaml'},
 {id:'ruleset',name:'\u89C4\u5219\u96C6\u6A21\u677F',desc:'Rule-Set \u89C4\u5219\u96C6\u5206\u6D41',icon:'\u{1F4E6}',url:'https://raw.githubusercontent.com/paooloin/clash-rules/refs/heads/main/config/%E8%A7%84%E5%88%99%E9%9B%86.yaml'}
 ];
-
 var EMOJIS=['\u{1F436}','\u{1F431}','\u{1F98A}','\u{1F43C}','\u{1F42F}','\u{1F981}','\u{1F42E}','\u{1F437}','\u{1F438}','\u{1F435}','\u{1F414}','\u{1F427}','\u{1F426}','\u{1F985}','\u{1F986}','\u{1F420}','\u{1F980}','\u{1F419}','\u{1F41D}','\u{1F98B}','\u{1F338}','\u{1F33B}','\u{1F525}','\u2B50','\u{1F48E}','\u{1F3AF}','\u{1F3AA}','\u{1F3A8}','\u{1F340}','\u{1F308}'];
-
 var REGIONS=[
 {id:'hk',label:'\u{1F1ED}\u{1F1F0} \u9999\u6E2F',keywords:['\u{1F1ED}\u{1F1F0}','\u6E2F','HK','Hong','HKG','HKT']},
 {id:'tw',label:'\u{1F1F9}\u{1F1FC} \u53F0\u6E7E',keywords:['\u{1F1E8}\u{1F1F3}','\u{1F1FC}\u{1F1F8}','\u{1F1F9}\u{1F1FC}','\u53F0','\u65B0\u7AF9','\u4E2D\u83EF\u96FB\u4FE1','\u65B0\u5317','\u5F70\u5316','TW','Taiwan']},
@@ -283,10 +295,13 @@ var REGIONS=[
 {id:'ru',label:'\u{1F1F7}\u{1F1FA} \u4FC4\u7F57\u65AF',keywords:['\u{1F1F7}\u{1F1FA}','\u4FC4','RU','Russia']},
 {id:'ph',label:'\u{1F1F5}\u{1F1ED} \u83F2\u5F8B\u5BBE',keywords:['\u{1F1F5}\u{1F1ED}','\u83F2','PH','Philippines']}
 ];
-
 var LS_KEY='mihomo_user_tpls';
 var S={tpl:'',tplSrc:null,subs:[],chainOn:false,srcType:'filter',epNodes:[],epSel:new Set(),selNodes:new Set(),selRegions:new Set(),regexManual:false};
 var subIdC=0,pCache={};
+var filterExcluded=new Set();
+var clSelRegions=new Set();
+var clRegexManual=false;
+
 function $(id){return document.getElementById(id)}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function ea(s){return s.replace(/"/g,'&quot;')}
@@ -295,16 +310,25 @@ function qn(n){if(/[,\[\]{}]/.test(n)||/:\s/.test(n)||/:$/.test(n)||n.trim()!==n
 function pRe(s){var p=s,f='';var m=p.match(/^\(\?([imsx]+)\)/);if(m){f=m[1];p=p.substring(m[0].length)}return new RegExp(p,f)}
 function rE(){return EMOJIS[Math.floor(Math.random()*EMOJIS.length)]}
 
-function renderRegions(){
-$('region-grid').innerHTML=REGIONS.map(function(r){return'<div class="region-chip'+(S.selRegions.has(r.id)?' on':'')+'" data-id="'+r.id+'" onclick="toggleRegion(\''+r.id+'\')">'+r.label+'</div>'}).join('')}
+// ===== Region filter (src-filter) =====
+function renderRegions(){$('region-grid').innerHTML=REGIONS.map(function(r){return'<div class="region-chip'+(S.selRegions.has(r.id)?' on':'')+'" onclick="toggleRegion(\''+r.id+'\')">'+r.label+'</div>'}).join('')}
 function toggleRegion(id){if(S.selRegions.has(id))S.selRegions.delete(id);else S.selRegions.add(id);S.regexManual=false;buildRegex();renderRegions()}
-function buildRegex(){
-if(S.regexManual)return;
-if(!S.selRegions.size){$('f-regex').value='';prevFilter();return}
-var allKw=[];S.selRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)allKw=allKw.concat(r.keywords)});
-$('f-regex').value='(?i)('+allKw.join('|')+')';prevFilter()}
+function buildRegex(){if(S.regexManual)return;if(!S.selRegions.size){$('f-regex').value='';prevFilter();return}var allKw=[];S.selRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)allKw=allKw.concat(r.keywords)});$('f-regex').value='(?i)('+allKw.join('|')+')';prevFilter()}
 function onRegexManualEdit(){S.regexManual=true;prevFilter()}
 
+// ===== Region filter (src-newlink cl-filter) =====
+function renderClRegions(){var el=$('cl-region-grid');if(!el)return;el.innerHTML=REGIONS.map(function(r){return'<div class="region-chip'+(clSelRegions.has(r.id)?' on':'')+'" onclick="toggleClRegion(\''+r.id+'\')">'+r.label+'</div>'}).join('')}
+function toggleClRegion(id){if(clSelRegions.has(id))clSelRegions.delete(id);else clSelRegions.add(id);clRegexManual=false;buildClRegex();renderClRegions()}
+function buildClRegex(){if(clRegexManual)return;if(!clSelRegions.size){$('cl-filter').value='';return}var allKw=[];clSelRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)allKw=allKw.concat(r.keywords)});$('cl-filter').value='(?i)('+allKw.join('|')+')'}
+function onClFilterManualEdit(){clRegexManual=true}
+
+// ===== Filter node list with checkbox =====
+function prevFilter(){var all=getAFN();if(S.srcType!=='filter'||!all.length){$('f-prev').classList.add('hide');filterExcluded.clear();return}var fs=$('f-regex').value.trim();if(!fs){$('f-prev').classList.add('hide');filterExcluded.clear();return}try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});$('f-prev').classList.remove('hide');$('f-cnt').textContent=matched.length;var matchedNames=new Set(matched.map(function(n){return n.name}));filterExcluded.forEach(function(name){if(!matchedNames.has(name))filterExcluded.delete(name)});renderFilterNodes()}catch(e){$('f-prev').classList.add('hide')}}
+function renderFilterNodes(){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs){$('f-list').innerHTML='';return}try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});var q=$('f-search')?$('f-search').value.toLowerCase():'';var filtered=matched.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1});$('f-list').innerHTML=filtered.length?filtered.map(function(n){var id='fm'+eid(n.name);var checked=!filterExcluded.has(n.name);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(checked?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join(''):'<div class="empty">\u65E0\u5339\u914D</div>';$('f-list').querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(!cb.checked)filterExcluded.add(cb.dataset.name);else filterExcluded.delete(cb.dataset.name);updateFSelCt()}});updateFSelCt()}catch(e){$('f-list').innerHTML=''}}
+function updateFSelCt(){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs)return;try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});var selected=matched.filter(function(n){return!filterExcluded.has(n.name)});var el=$('f-sel-ct');if(el)el.textContent=selected.length+' / '+matched.length}catch(e){}}
+function allFilterNodes(v){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs)return;try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});filterExcluded.clear();if(!v)matched.forEach(function(n){filterExcluded.add(n.name)});renderFilterNodes()}catch(e){}}
+
+// ===== Template =====
 function renderPresets(){$('preset-grid').innerHTML=PRESETS.map(function(p){return'<div class="tpl-chip'+(S.tplSrc==='p:'+p.id?' active':'')+'" onclick="loadPreset(\''+p.id+'\')"><span class="tc-icon">'+p.icon+'</span><span class="tc-name">'+esc(p.name)+'</span><span class="tc-desc">'+esc(p.desc)+'</span>'+(pCache[p.id]?'':'<span class="tc-badge">\u8FDC\u7A0B</span>')+'</div>'}).join('')}
 async function loadPreset(id){var p=PRESETS.find(function(x){return x.id===id});if(!p)return;S.tplSrc='p:'+id;renderPresets();renderUserTpls();if(pCache[id]){$('tpl-c').value=pCache[id];S.tpl=pCache[id];updSt();return}$('tpl-st').innerHTML='<span class="spinner"></span>\u52A0\u8F7D\u4E2D';$('tpl-st').className='badge badge-load';try{var r=await fetch(p.url);if(!r.ok)throw new Error(r.status);var t=await r.text();pCache[id]=t;$('tpl-c').value=t;S.tpl=t;updSt()}catch(e){$('tpl-st').textContent='\u52A0\u8F7D\u5931\u8D25';$('tpl-st').className='badge badge-err';alert('\u274C \u52A0\u8F7D\u5931\u8D25: '+e.message)}}
 function getUserTpls(){try{return JSON.parse(localStorage.getItem(LS_KEY))||[]}catch(e){return[]}}
@@ -320,13 +344,15 @@ function onTplInput(){S.tpl=$('tpl-c').value;S.tplSrc=null;updSt();renderPresets
 function clearTpl(){$('tpl-c').value='';S.tpl='';S.tplSrc=null;updSt();renderPresets();renderUserTpls()}
 $('tpl-f').onchange=async function(){var f=this.files[0];if(!f)return;$('tpl-c').value=await f.text();S.tpl=$('tpl-c').value;S.tplSrc=null;updSt();renderPresets();renderUserTpls()};
 
+// ===== YAML Parser =====
 function findPS(c){var L=c.split('\n');var si=-1;for(var i=0;i<L.length;i++)if(/^proxies:\s*(?:#.*)?$/.test(L[i])){si=i+1;break}if(si===-1)return null;var ei=L.length;for(var i=si;i<L.length;i++){var l=L[i];if(l.trim()===''||l.trimStart().startsWith('#'))continue;if(!/^\s/.test(l)){ei=i;break}}return{sL:si-1,cS:si,cE:ei,raw:L.slice(si,ei)}}
 function parseN(raw){var nodes=[];var i=0;while(i<raw.length){while(i<raw.length){var t=raw[i].trim();if(t===''||t.startsWith('#'))i++;else break}if(i>=raw.length)break;var line=raw[i],tr=line.trim();if(!tr.startsWith('-')){i++;continue}if(/^-\s*\{/.test(tr)){var bc=0,cl=[],j=i;while(j<raw.length){var l=raw[j];cl.push(l);for(var k=0;k<l.length;k++){if(l[k]==='{')bc++;else if(l[k]==='}')bc--}if(bc===0)break;j++}var ft=cl.join('\n');var nm=ft.match(/name:\s*(?:'([^']*(?:''[^']*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|([^,}\n]+))/);if(nm){var n;if(nm[1]!==undefined)n=nm[1].replace(/''/g,"'");else if(nm[2]!==undefined)n=nm[2].replace(/\\(.)/g,'$1');else n=nm[3].trim();nodes.push({name:n,fmt:'f',raw:cl})}i=j+1}else{var bi=line.search(/\S/);var cl=[line];var nn=null;var sm=tr.match(/^-\s*name:\s*(?:'([^']*(?:''[^']*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|(.+))$/);if(sm){if(sm[1]!==undefined)nn=sm[1].replace(/''/g,"'");else if(sm[2]!==undefined)nn=sm[2].replace(/\\(.)/g,'$1');else nn=sm[3].trim()}i++;while(i<raw.length){var nx=raw[i],nt=nx.trim();if(nt===''){var k2=i+1;while(k2<raw.length&&raw[k2].trim()==='')k2++;if(k2>=raw.length||raw[k2].search(/\S/)<=bi)break;cl.push(nx);i++;continue}if(nx.search(/\S/)<=bi)break;if(!nn){var m2=nt.match(/^name:\s*(?:'([^']*(?:''[^']*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|(.+))$/);if(m2){if(m2[1]!==undefined)nn=m2[1].replace(/''/g,"'");else if(m2[2]!==undefined)nn=m2[2].replace(/\\(.)/g,'$1');else nn=m2[3].trim()}}cl.push(nx);i++}if(nn)nodes.push({name:nn,fmt:'b',raw:cl})}}return nodes}
 function addDial(node){if(node.fmt==='f'){var ft=node.raw.join('\n');var lb=ft.lastIndexOf('}');if(lb===-1)return node.raw;var bef=ft.substring(0,lb).replace(/\s+$/,'');var aft=ft.substring(lb);var sep=bef.endsWith(',')?(' '):(bef.endsWith('{')?(' '):(', '));return(bef+sep+'dialer-proxy: \u{1F500} \u94FE\u5F0F\u4EE3\u7406 '+aft).split('\n')}else{var pl=node.raw.filter(function(l){var t=l.trim();return t&&!t.startsWith('-')&&!t.startsWith('#')});var ind=pl.length>0?pl[0].match(/^(\s*)/)[1]:'    ';var li=node.raw.length-1;while(li>=0&&(node.raw[li].trim()===''||node.raw[li].trim().startsWith('#')))li--;var r=node.raw.slice();r.splice(li+1,0,ind+'dialer-proxy: \u{1F500} \u94FE\u5F0F\u4EE3\u7406');return r}}
 function renameN(node,nn){if(node.fmt==='f')return node.raw.join('\n').replace(/name:\s*(?:'[^']*(?:''[^']*)*'|"[^"\\]*(?:\\.[^"\\]*)*"|[^,}\n]+)/,'name: '+qn(nn)).split('\n');return node.raw.map(function(l){return/^\s*-?\s*name:\s*/.test(l)?l.replace(/name:\s*(?:'[^']*(?:''[^']*)*'|"[^"\\]*(?:\\.[^"\\]*)*"|.+)$/,'name: '+qn(nn)):l})}
 
+// ===== Subs =====
 function addSubFile(){var inp=document.createElement('input');inp.type='file';inp.multiple=true;inp.onchange=async function(){for(var i=0;i<inp.files.length;i++){var f=inp.files[i];var txt=await f.text();var id=subIdC++;var sec=findPS(txt);var nodes=sec?parseN(sec.raw):[];S.subs.push({id:id,type:'file',fileName:f.name,content:txt,nodes:nodes,prefix:''})}renderSubs()};inp.click()}
-function addSubLink(){var id=subIdC++;var linkCount=S.subs.filter(function(s){return s.type==='link'}).length;S.subs.push({id:id,type:'link',name:'\u8BA2\u9605'+(linkCount+1),url:'',prefix:'',interval:'manual',filter:'',nodes:[]});renderSubs()}
+function addSubLink(){var id=subIdC++;var lc=S.subs.filter(function(s){return s.type==='link'}).length;S.subs.push({id:id,type:'link',name:'\u8BA2\u9605'+(lc+1),url:'',prefix:'',interval:'manual',filter:'',nodes:[]});renderSubs()}
 function rmSub(id){S.subs=S.subs.filter(function(s){return s.id!==id});renderSubs()}
 function updSub(id,k,v){var s=S.subs.find(function(x){return x.id===id});if(s)s[k]=v}
 function renderSubs(){
@@ -336,41 +362,49 @@ if(s.type==='file')h+='<div class="sub-card"><div class="sub-head"><span class="
 else h+='<div class="sub-card"><div class="sub-head"><span class="sub-tag">\u{1F517} \u8BA2\u9605\u94FE\u63A5</span></div><div class="row-2"><div class="field"><label>\u8BA2\u9605\u540D\u79F0</label><input type="text" value="'+ea(s.name)+'" onchange="updSub('+s.id+',\'name\',this.value)"></div><div class="field"><label>\u8282\u70B9\u524D\u7F00 (\u7559\u7A7A\u81EA\u52A8\u751F\u6210)</label><input type="text" value="'+ea(s.prefix)+'" placeholder="\u7559\u7A7A\u81EA\u52A8: \u8BA2\u9605\u540D+emoji" onchange="updSub('+s.id+',\'prefix\',this.value)"></div></div><div class="field"><label>URL</label><input type="url" value="'+ea(s.url||'')+'" placeholder="https://..." onchange="updSub('+s.id+',\'url\',this.value)"></div><div class="row-2"><div class="field"><label>\u66F4\u65B0\u7B56\u7565</label><select onchange="updSub('+s.id+',\'interval\',this.value)"><option value="manual"'+(s.interval==='manual'?' selected':'')+'>\u4E0D\u81EA\u52A8\u66F4\u65B0</option><option value="daily"'+(s.interval==='daily'?' selected':'')+'>24h \u81EA\u52A8</option></select></div><div class="field"><label>\u6B63\u5219\u8FC7\u6EE4</label><input type="text" value="'+ea(s.filter||'')+'" placeholder="\u7559\u7A7A\u5168\u90E8" onchange="updSub('+s.id+',\'filter\',this.value)"></div></div><button class="btn btn-err btn-sm sub-rm" onclick="rmSub('+s.id+')">\u2715</button></div>'}
 c.innerHTML=h;var fc=S.subs.filter(function(s){return s.type==='file'}).reduce(function(a,s){return a+s.nodes.length},0);var lc=S.subs.filter(function(s){return s.type==='link'}).length;
 var t=[];if(fc)t.push(fc+' \u8282\u70B9');if(lc)t.push(lc+' \u94FE\u63A5');$('sub-st').textContent=S.subs.length+' \u4E2A\u6E90'+(t.length?' \u00B7 '+t.join(', '):'');$('sub-st').className='badge badge-ok';refreshAll()}
-
 function getAFN(){var a=[];for(var i=0;i<S.subs.length;i++){var s=S.subs[i];if(s.type!=='file')continue;for(var j=0;j<s.nodes.length;j++)a.push({name:s.nodes[j].name,fmt:s.nodes[j].fmt,raw:s.nodes[j].raw,subId:s.id,subName:s.fileName})}return a}
 function refreshAll(){renderNodes();prevFilter()}
 function renderNodes(){var c=$('nl'),all=getAFN();if(!all.length){c.innerHTML='<div class="empty">\u8BF7\u5148\u6DFB\u52A0\u8BA2\u9605\u6587\u4EF6</div>';$('sel-ct').textContent='0 / 0';return}var q=($('ns').value||'').toLowerCase();c.innerHTML=all.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1}).map(function(n){var id=eid(n.name+'_'+n.subId);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(S.selNodes.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join('');c.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(cb.checked)S.selNodes.add(cb.dataset.name);else S.selNodes.delete(cb.dataset.name);$('sel-ct').textContent=S.selNodes.size+' / '+all.length;prevFilter()}});$('sel-ct').textContent=S.selNodes.size+' / '+all.length}
 function allNodes(v){S.selNodes.clear();if(v)getAFN().forEach(function(n){S.selNodes.add(n.name)});renderNodes();prevFilter()}
 function toggleChain(){S.chainOn=$('chain-on').checked;$('chain-cfg').classList.toggle('hide',!S.chainOn);$('chain-st').textContent=S.chainOn?'\u5DF2\u542F\u7528':'\u672A\u542F\u7528';$('chain-st').className='badge'+(S.chainOn?' badge-ok':'')}
 function switchSrc(t){S.srcType=t;document.querySelectorAll('#src-tabs .tab').forEach(function(x){x.classList.toggle('on',x.dataset.s===t)});document.querySelectorAll('.src-pane').forEach(function(x){x.classList.add('hide')});$('src-'+t).classList.remove('hide');if(t==='filter')prevFilter()}
-function prevFilter(){var all=getAFN();if(S.srcType!=='filter'||!all.length){$('f-prev').classList.add('hide');return}var fs=$('f-regex').value.trim();if(!fs){$('f-prev').classList.add('hide');return}try{var re=pRe(fs);var m=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});$('f-prev').classList.remove('hide');$('f-cnt').textContent=m.length;$('f-list').innerHTML=m.length?m.map(function(n){return'<div class="nitem"><span class="nn">'+esc(n.name)+'</span></div>'}).join(''):'<div class="empty">\u65E0\u5339\u914D</div>'}catch(e){$('f-prev').classList.add('hide')}}
 function onEpChange(){var c=$('ep-c').value;S.epNodes=[];S.epSel.clear();if(!c.trim()){$('ep-info').classList.add('hide');return}var raw;if(/^proxies:\s*$/m.test(c)){var s=findPS(c);raw=s?s.raw:c.split('\n')}else raw=c.split('\n');S.epNodes=parseN(raw);if(!S.epNodes.length){$('ep-info').classList.add('hide');return}$('ep-info').classList.remove('hide');$('ep-cnt').textContent=S.epNodes.length;renderEp()}
 function renderEp(){var c=$('ep-list'),q=($('ep-s').value||'').toLowerCase();var f=S.epNodes.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1});if(!f.length){c.innerHTML='<div class="empty">\u65E0\u5339\u914D</div>';return}c.innerHTML=f.map(function(n){var id='ep'+eid(n.name);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(S.epSel.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join('');c.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(cb.checked)S.epSel.add(cb.dataset.name);else S.epSel.delete(cb.dataset.name)}})}
 function allEp(v){S.epSel.clear();if(v)S.epNodes.forEach(function(n){S.epSel.add(n.name)});renderEp()}
 
+// ===== Clean empty providers =====
 function cleanEmptyProviders(yaml){
 var lines=yaml.split('\n');var result=[];var i=0;
 while(i<lines.length){
 if(/^proxy-providers:\s*(?:#.*)?$/.test(lines[i])){
 result.push(lines[i]);i++;
-while(i<lines.length&&(lines[i].trim()===''||/^\s/.test(lines[i])||lines[i].trim().startsWith('#'))){
-if(lines[i].trim()===''||lines[i].trim().startsWith('#')){result.push(lines[i]);i++;continue}
-var nameMatch=lines[i].match(/^  (\S[^:]*?):\s*$/);
-if(!nameMatch){result.push(lines[i]);i++;continue}
+while(i<lines.length){
+var line=lines[i];
+if(line.trim()===''||line.trim().startsWith('#')){
+// skip orphan comments/blanks inside provider section, peek ahead
+var peek=i;while(peek<lines.length&&(lines[peek].trim()===''||lines[peek].trim().startsWith('#')))peek++;
+if(peek>=lines.length||!/^\s/.test(lines[peek])){i=peek;break}
+// there's more provider content, skip these lines for now
+i=peek;continue}
+var nameMatch=line.match(/^  (\S[^:]*?):\s*$/);
+if(!nameMatch){if(!/^\s/.test(line))break;result.push(lines[i]);i++;continue}
 var block=[lines[i]];i++;
-while(i<lines.length&&lines[i].match(/^    /)){block.push(lines[i]);i++}
-var trailing=[];while(i<lines.length&&lines[i].trim()===''){trailing.push(lines[i]);i++}
-var urlLine=block.find(function(l){return/^\s*url:\s*""\s*$/.test(l)||/^\s*url:\s*''\s*$/.test(l)||/^\s*url:\s*$/.test(l)});
-if(urlLine){continue}
-result.push.apply(result,block.concat(trailing))}
+while(i<lines.length&&/^    /.test(lines[i])){block.push(lines[i]);i++}
+// skip trailing comments and blanks after this provider
+while(i<lines.length&&(lines[i].trim()===''||lines[i].trim().startsWith('#')))i++;
+var hasEmptyUrl=block.some(function(l){return/^\s*url:\s*""\s*$/.test(l)||/^\s*url:\s*''\s*$/.test(l)||/^\s*url:\s*$/.test(l)});
+if(hasEmptyUrl)continue;
+result.push.apply(result,block);result.push('')}
 continue}
 result.push(lines[i]);i++}
+// remove proxy-providers: if empty
 for(var j=0;j<result.length;j++){
 if(/^proxy-providers:\s*(?:#.*)?$/.test(result[j])){
 var hasP=false;for(var k=j+1;k<result.length;k++){if(result[k].trim()===''||result[k].trim().startsWith('#'))continue;if(/^\s/.test(result[k])){hasP=true;break}break}
-if(!hasP){var end=j+1;while(end<result.length&&result[end].trim()==='')end++;result.splice(j,end-j)}break}}
+if(!hasP){var end=j+1;while(end<result.length&&(result[end].trim()===''||result[end].trim().startsWith('#')))end++;result.splice(j,end-j)}break}}
 return result.join('\n')}
 
+// ===== Generate =====
 function generate(){
 try{
 if(!S.tpl.trim())throw new Error('\u8BF7\u5148\u9009\u62E9\u6A21\u677F\u6587\u4EF6');
@@ -407,16 +441,42 @@ function rmProxies(t){var L=t.split('\n');var pi=-1;for(var i=0;i<L.length;i++)i
 function addProv(y,entry){var L=y.split('\n');var pi=-1;for(var i=0;i<L.length;i++)if(/^proxy-providers:\s*(?:#.*)?$/.test(L[i])){pi=i;break}if(pi===-1){var ins=L.length;for(var i=0;i<L.length;i++)if(/^proxy-groups:\s*(?:#.*)?$/.test(L[i])){ins=i;break}L.splice(ins,0,'proxy-providers:',entry,'');return L.join('\n')}L.splice(pi+1,0,entry);return L.join('\n')}
 function addToPS(y,ex){var L=y.split('\n');var pi=-1;for(var i=0;i<L.length;i++)if(/^proxies:\s*(?:#.*)?$/.test(L[i])){pi=i;break}if(pi===-1){var ins=L.length;for(var i=0;i<L.length;i++)if(/^proxy-groups:\s*(?:#.*)?$/.test(L[i])){ins=i;break}L.splice.apply(L,[ins,0,'proxies:'].concat(ex).concat(['']));return L.join('\n')}var ei=L.length;for(var i=pi+1;i<L.length;i++){var l=L[i];if(l.trim()===''||l.trimStart().startsWith('#'))continue;if(!/^\s/.test(l)){ei=i;break}}var ins=ei;while(ins>pi+1&&L[ins-1].trim()==='')ins--;L.splice.apply(L,[ins,0].concat(ex));return L.join('\n')}
 function addToGrp(y,entry){var aR=/^[ \t]*-[ \t]*\{\s*name:\s*\u{1F500}[ \t]*\u94FE\u5F0F\u4EE3\u7406[^\n]*$/mu;if(aR.test(y))return y.replace(aR,entry);var cR=/^[ \t]*#[ \t]*-[ \t]*\{\s*name:\s*\u{1F500}[ \t]*\u94FE\u5F0F\u4EE3\u7406[^\n]*$/mu;if(cR.test(y))return y.replace(cR,entry);var L=y.split('\n');for(var i=0;i<L.length;i++){if(/^proxy-groups:\s*(?:#.*)?$/.test(L[i])){L.splice(i+1,0,entry);return L.join('\n')}}throw new Error('\u6A21\u677F\u4E2D\u6CA1\u6709 proxy-groups:')}
+
 function addCC(result,allN){var gc;
-if(S.srcType==='filter'){var fs=$('f-regex').value.trim();if(!fs)throw new Error('\u8BF7\u586B\u5199\u6B63\u5219');var re=pRe(fs);var m=allN.filter(function(n){return!S.selNodes.has(n.origName)&&re.test(n.name)});if(!m.length)throw new Error('\u8FC7\u6EE4\u540E\u65E0\u5339\u914D');gc='  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, proxies: ['+m.map(function(n){return qn(n.name)}).join(', ')+'] }'}
-else if(S.srcType==='newlink'){var name=$('cl-name').value.trim()||'\u94FE\u5F0F\u8BA2\u9605';var pfx=$('cl-pfx').value;var url=$('cl-url').value.trim(),intv=$('cl-int').value,filter=$('cl-filter').value.trim();if(!url)throw new Error('\u8BF7\u586B\u5199\u94FE\u5F0F\u4EE3\u7406\u8BA2\u9605 URL');if(!pfx)pfx=name+' '+rE()+' ';var anc=intv==='daily'?'*h':'*p';result=addProv(result,['  '+name+':','    <<: '+anc,'    override:','      additional-prefix: "'+pfx+'"','    url: "'+url+'"'].join('\n'));gc=filter?'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+name+'], filter: "'+filter+'" }':'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+name+'] }'}
-else if(S.srcType==='newproxy'){var sel=S.epNodes.filter(function(n){return S.epSel.has(n.name)});if(!sel.length)throw new Error('\u8BF7\u81F3\u5C11\u9009\u62E9\u4E00\u4E2A\u94FE\u5F0F\u4EE3\u7406\u8282\u70B9');var eL=[];for(var i=0;i<sel.length;i++)eL=eL.concat(sel[i].raw);result=addToPS(result,eL);gc='  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, proxies: ['+sel.map(function(n){return qn(n.name)}).join(', ')+'] }'}
-return addToGrp(result,gc)}
+if(S.srcType==='filter'){
+  var fs=$('f-regex').value.trim();
+  if(!fs)throw new Error('\u8BF7\u586B\u5199\u6B63\u5219\u6216\u9009\u62E9\u5730\u533A');
+  var re=pRe(fs);
+  var m=allN.filter(function(n){return!S.selNodes.has(n.origName)&&re.test(n.name)&&!filterExcluded.has(n.origName)});
+  if(!m.length)throw new Error('\u8FC7\u6EE4\u540E\u65E0\u5339\u914D\u8282\u70B9');
+  gc='  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, proxies: ['+m.map(function(n){return qn(n.name)}).join(', ')+'] }'
+}
+else if(S.srcType==='newlink'){
+  var name=$('cl-name').value.trim()||'\u94FE\u5F0F\u8BA2\u9605';
+  var pfx=$('cl-pfx').value;
+  var url=$('cl-url').value.trim();
+  var intv=$('cl-int').value;
+  var filter=$('cl-filter').value.trim();
+  if(!url)throw new Error('\u8BF7\u586B\u5199\u94FE\u5F0F\u4EE3\u7406\u8BA2\u9605 URL');
+  if(!pfx)pfx=name+' '+rE()+' ';
+  var anc=intv==='daily'?'*h':'*p';
+  var provEntry=['  '+name+':','    <<: '+anc,'    override:','      additional-prefix: "'+pfx+'"','    url: "'+url+'"'];
+  result=addProv(result,provEntry.join('\n'));
+  gc=filter?'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+name+'], filter: "'+filter+'" }':'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+name+'] }'
+}
+else if(S.srcType==='newproxy'){
+  var sel=S.epNodes.filter(function(n){return S.epSel.has(n.name)});
+  if(!sel.length)throw new Error('\u8BF7\u81F3\u5C11\u9009\u62E9\u4E00\u4E2A\u94FE\u5F0F\u4EE3\u7406\u8282\u70B9');
+  var eL=[];for(var i=0;i<sel.length;i++)eL=eL.concat(sel[i].raw);
+  result=addToPS(result,eL);
+  gc='  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, proxies: ['+sel.map(function(n){return qn(n.name)}).join(', ')+'] }'
+}
+result=addToGrp(result,gc);return result}
 
 function doCopy(){var t=$('output').value;if(!t)return;navigator.clipboard.writeText(t).then(function(){var b=$('copy-btn'),o=b.innerHTML;b.innerHTML='\u2705 \u5DF2\u590D\u5236';setTimeout(function(){b.innerHTML=o},1500)}).catch(function(){alert('\u590D\u5236\u5931\u8D25')})}
 function doDl(){var t=$('output').value;if(!t)return;var b=new Blob([t],{type:'text/yaml;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='config.yaml';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
 $('save-modal').onclick=function(e){if(e.target===this)hideSaveModal()};
-renderPresets();renderUserTpls();renderRegions();
+renderPresets();renderUserTpls();renderRegions();renderClRegions();
 </script>
 </body>
-</html>
+  </html>
