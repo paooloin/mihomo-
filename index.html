@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Mihomo 配置生成器</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
 --glass-1:rgba(255,255,255,.05);--glass-2:rgba(255,255,255,.08);
@@ -14,7 +13,7 @@
 --accent:#a78bfa;--accent-bright:#c4b5fd;
 --ok:#6ee7b7;--ok-bg:rgba(110,231,183,.1);
 --err:#fca5a5;--err-bg:rgba(252,165,165,.1);--warn:#fcd34d;
---mono:'JetBrains Mono',monospace;--sans:'Inter',system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+--mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;--sans:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
 }
 html{scroll-behavior:smooth}
 body{font-family:var(--sans);color:var(--t1);line-height:1.55;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;background:#07060b}
@@ -61,6 +60,7 @@ select option{background:#14121f;color:var(--t1)}
 .btn-err{background:rgba(252,165,165,.08);border-color:rgba(252,165,165,.12);color:var(--err)}
 .btn-err:hover{background:rgba(252,165,165,.15)}
 .btn-sm{padding:5px 11px;font-size:.7rem;border-radius:8px}
+.btn-xs{padding:3px 8px;font-size:.63rem;border-radius:6px}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:600px){.row-2{grid-template-columns:1fr}}
@@ -142,165 +142,93 @@ footer{text-align:center;padding:32px 0 12px;color:var(--t3);font-size:.7rem;fon
 <div class="bg-grain"></div>
 <div class="bg-scanline"></div>
 <div class="wrap">
-<header>
-<h1>Mihomo 配置生成器</h1>
-<p>多订阅合并 · 链式代理 · 预设模板 · 浏览器本地处理</p>
-</header>
+<header><h1>Mihomo 配置生成器</h1><p>多订阅合并 · 链式代理 · 预设模板 · 浏览器本地处理</p></header>
 
 <div class="card">
 <div class="card-h"><div class="num">1</div><div class="title">模板文件</div><span class="badge" id="tpl-st">未选择</span></div>
 <div class="card-b">
 <div class="tpl-section"><div class="tpl-section-label">预设模板</div><div class="tpl-grid" id="preset-grid"></div></div>
 <div class="tpl-section hide" id="user-tpl-section"><div class="tpl-section-label">我的模板</div><div class="tpl-grid" id="user-grid"></div></div>
-<div class="row">
-<label class="btn btn-p">📁 上传<input type="file" id="tpl-f" hidden></label>
-<button class="btn btn-p" onclick="showSaveModal()">💾 保存为模板</button>
-<button class="btn" onclick="clearTpl()">清空</button>
-</div>
+<div class="row"><label class="btn btn-p">📁 上传<input type="file" id="tpl-f" hidden></label><button class="btn btn-p" onclick="showSaveModal()">💾 保存为模板</button><button class="btn" onclick="clearTpl()">清空</button></div>
 <textarea id="tpl-c" rows="5" placeholder="选择预设模板、上传文件、或粘贴模板内容..." oninput="onTplInput()"></textarea>
-</div>
-</div>
+</div></div>
 
 <div class="card">
 <div class="card-h"><div class="num">2</div><div class="title">订阅来源</div><span class="badge" id="sub-st">0 个源</span></div>
 <div class="card-b">
 <p class="help"><b>文件</b>提取 proxies 列表 · <b>链接</b>加入 proxy-providers · 支持多个混合</p>
-<div class="row" style="margin-bottom:14px">
-<button class="btn btn-p" onclick="addSubFile()">📁 添加订阅文件</button>
-<button class="btn btn-p" onclick="addSubLink()">🔗 添加订阅链接</button>
-</div>
+<div class="row" style="margin-bottom:14px"><button class="btn btn-p" onclick="addSubFile()">📁 添加订阅文件</button><button class="btn btn-p" onclick="addSubLink()">🔗 添加订阅链接</button></div>
 <div id="sub-list"></div>
-</div>
-</div>
+</div></div>
 
 <div class="card">
 <div class="card-h"><div class="num">3</div><div class="title">链式代理 <span style="color:var(--t3);font-weight:300;font-size:.75rem">可选</span></div><span class="badge" id="chain-st">未启用</span></div>
 <div class="card-b">
-<div class="toggle-w">
-<label class="tgl"><input type="checkbox" id="chain-on" onchange="toggleChain()"><span class="tgl-s"></span></label>
-<label for="chain-on">启用链式代理 (前置代理)</label>
-</div>
+<div class="toggle-w"><label class="tgl"><input type="checkbox" id="chain-on" onchange="toggleChain()"><span class="tgl-s"></span></label><label for="chain-on">启用链式代理 (前置代理)</label></div>
 <div id="chain-cfg" class="hide">
 <hr class="sep">
 <h3>① 选择需要 <code>dialer-proxy</code> 的节点</h3>
 <p class="help">勾选的节点连接时会先经过链式代理</p>
-<div class="ctrls">
-<input type="text" class="search" id="ns" placeholder="🔍 搜索..." oninput="renderNodes()">
-<button class="btn btn-sm" onclick="allNodes(true)">全选</button>
-<button class="btn btn-sm" onclick="allNodes(false)">全不选</button>
-<span class="badge" id="sel-ct">0 / 0</span>
-</div>
+<div class="ctrls"><input type="text" class="search" id="ns" placeholder="🔍 搜索..." oninput="renderNodes()"><button class="btn btn-sm" onclick="allNodes(true)">全选</button><button class="btn btn-sm" onclick="allNodes(false)">全不选</button><span class="badge" id="sel-ct">0 / 0</span></div>
 <div class="nlist" id="nl"><div class="empty">请先添加订阅文件</div></div>
 <hr class="sep">
 <h3>② 链式代理策略组来源</h3>
-<div class="tabs" id="src-tabs">
-<div class="tab on" data-s="filter" onclick="switchSrc('filter')">从已有节点筛选</div>
-<div class="tab" data-s="newlink" onclick="switchSrc('newlink')">新订阅链接</div>
-<div class="tab" data-s="newproxy" onclick="switchSrc('newproxy')">新节点列表</div>
-</div>
+<div class="tabs" id="src-tabs"><div class="tab on" data-s="filter" onclick="switchSrc('filter')">从已有节点筛选</div><div class="tab" data-s="newlink" onclick="switchSrc('newlink')">新订阅链接</div><div class="tab" data-s="newproxy" onclick="switchSrc('newproxy')">新节点列表</div></div>
 
 <div id="src-filter" class="src-pane">
-<div class="alert alert-i">选择地区自动生成正则，也可手动编辑（自动排除已勾选节点避免循环）</div>
+<div class="alert alert-i">手动勾选 + 正则筛选，两种方式可叠加使用（已在①中勾选的节点自动排除）</div>
+<h3>手动选择节点</h3>
+<div class="ctrls"><input type="text" class="search" id="fm-search" placeholder="🔍 搜索节点..." oninput="renderManualFilterNodes()"><button class="btn btn-sm" onclick="allManualFilter(true)">全选</button><button class="btn btn-sm" onclick="allManualFilter(false)">全不选</button><span class="badge" id="fm-sel-ct">0 / 0</span></div>
+<div class="nlist" id="fm-list" style="max-height:180px"><div class="empty">请先添加订阅文件</div></div>
+<hr class="sep">
+<h3>正则筛选节点</h3>
 <p class="help" style="margin-bottom:6px">快速选择地区：</p>
 <div class="region-grid" id="region-grid"></div>
 <div class="field"><label>正则表达式 <span style="font-weight:300;color:var(--t3)">(可手动修改)</span></label><input type="text" id="f-regex" value="" oninput="onRegexManualEdit()"></div>
-<div id="f-prev" class="hide">
-<p class="help">匹配 <span id="f-cnt">0</span> 个节点：</p>
-<div class="ctrls">
-<input type="text" class="search" id="f-search" placeholder="🔍 搜索匹配节点..." oninput="renderFilterNodes()">
-<button class="btn btn-sm" onclick="allFilterNodes(true)">全选</button>
-<button class="btn btn-sm" onclick="allFilterNodes(false)">全不选</button>
-<span class="badge" id="f-sel-ct">0 / 0</span>
-</div>
-<div class="nlist" id="f-list" style="max-height:200px"></div>
-</div>
+<div id="f-prev" class="hide"><p class="help">匹配 <span id="f-cnt">0</span> 个节点：</p><div class="ctrls"><input type="text" class="search" id="f-search" placeholder="🔍 搜索..." oninput="renderFilterNodes()"><button class="btn btn-sm" onclick="allFilterNodes(true)">全选</button><button class="btn btn-sm" onclick="allFilterNodes(false)">全不选</button><span class="badge" id="f-sel-ct">0 / 0</span></div><div class="nlist" id="f-list" style="max-height:200px"></div></div>
 </div>
 
 <div id="src-newlink" class="src-pane hide">
-<div class="alert alert-i">新订阅 URL → <code>proxy-providers</code>，策略组用 <code>use:</code> 引用</div>
-<div class="row-2">
-<div class="field"><label>订阅名称</label><input type="text" id="cl-name" value="链式订阅"></div>
-<div class="field"><label>节点前缀 (留空自动生成)</label><input type="text" id="cl-pfx" placeholder="留空自动: 订阅名+emoji"></div>
-</div>
-<div class="field"><label>订阅 URL</label><input type="url" id="cl-url" placeholder="https://..."></div>
-<div class="row-2">
-<div class="field"><label>更新策略</label><select id="cl-int"><option value="manual">不自动更新</option><option value="daily">24h 自动更新</option></select></div>
-<div class="field"><label>正则过滤 (留空不过滤)</label><input type="text" id="cl-filter" placeholder="留空使用全部节点" oninput="onClFilterManualEdit()"></div>
-</div>
-<p class="help" style="margin-top:4px;margin-bottom:6px">快速选择地区过滤：</p>
+<div class="alert alert-i">添加一个或多个订阅 URL → <code>proxy-providers</code>，正则过滤统一设置</div>
+<button class="btn btn-p btn-sm" onclick="addChainLink()" style="margin-bottom:12px">+ 添加订阅链接</button>
+<div id="cl-list"></div>
+<hr class="sep">
+<p class="help" style="margin-bottom:6px">统一正则过滤 (留空不过滤)：</p>
 <div class="region-grid" id="cl-region-grid"></div>
+<div class="field"><label>正则表达式</label><input type="text" id="cl-filter" placeholder="留空使用全部节点" oninput="onClFilterManualEdit()"></div>
 </div>
 
 <div id="src-newproxy" class="src-pane hide">
 <div class="alert alert-i">粘贴节点 YAML → 加入 <code>proxies</code>，策略组用 <code>proxies:</code> 引用</div>
 <div class="field"><label>节点列表</label><textarea id="ep-c" rows="5" placeholder="- { name: ..., type: ss, ... }" oninput="onEpChange()"></textarea></div>
-<div id="ep-info" class="hide">
-<div class="alert alert-ok"><strong>识别到 <span id="ep-cnt">0</span> 个节点</strong></div>
-<div class="ctrls"><input type="text" class="search" id="ep-s" placeholder="🔍 搜索..." oninput="renderEp()"><button class="btn btn-sm" onclick="allEp(true)">全选</button><button class="btn btn-sm" onclick="allEp(false)">全不选</button></div>
-<div class="nlist" id="ep-list" style="max-height:180px"></div>
+<div id="ep-info" class="hide"><div class="alert alert-ok"><strong>识别到 <span id="ep-cnt">0</span> 个节点</strong></div><div class="ctrls"><input type="text" class="search" id="ep-s" placeholder="🔍 搜索..." oninput="renderEp()"><button class="btn btn-sm" onclick="allEp(true)">全选</button><button class="btn btn-sm" onclick="allEp(false)">全不选</button></div><div class="nlist" id="ep-list" style="max-height:180px"></div></div>
 </div>
-</div>
-</div>
-</div>
-</div>
+</div></div></div>
 
 <div class="card">
 <div class="card-h"><div class="num">4</div><div class="title">生成</div></div>
 <div class="card-b">
 <button class="btn btn-go" onclick="generate()">⚡ 生成配置文件</button>
 <div id="out-sec" class="hide" style="margin-top:16px">
-<div class="stats">
-<div class="stat"><div class="stat-v" id="st-n">0</div><div class="stat-l">Nodes</div></div>
-<div class="stat"><div class="stat-v" id="st-s">0</div><div class="stat-l">Sources</div></div>
-<div class="stat"><div class="stat-v" id="st-c">0</div><div class="stat-l">Chained</div></div>
-<div class="stat"><div class="stat-v" id="st-z">0</div><div class="stat-l">KB</div></div>
-</div>
+<div class="stats"><div class="stat"><div class="stat-v" id="st-n">0</div><div class="stat-l">Nodes</div></div><div class="stat"><div class="stat-v" id="st-s">0</div><div class="stat-l">Sources</div></div><div class="stat"><div class="stat-v" id="st-c">0</div><div class="stat-l">Chained</div></div><div class="stat"><div class="stat-v" id="st-z">0</div><div class="stat-l">KB</div></div></div>
 <div class="row"><button class="btn btn-p" id="copy-btn" onclick="doCopy()">📋 复制</button><button class="btn" onclick="doDl()">💾 下载</button></div>
 <textarea id="output" class="out-ta" rows="16" readonly></textarea>
-</div>
-</div>
-</div>
+</div></div></div>
+
 <footer>Mihomo Config Generator - Browser-local - No data uploaded</footer>
 </div>
-
-<div class="modal-bg" id="save-modal">
-<div class="modal">
-<h3>💾 保存为我的模板</h3>
-<div class="field"><label>模板名称</label><input type="text" id="sv-name" placeholder="我的自定义模板"></div>
-<div class="field"><label>描述 (可选)</label><input type="text" id="sv-desc" placeholder="精简分流 + 特殊规则"></div>
-<div class="row"><button class="btn" onclick="hideSaveModal()">取消</button><button class="btn btn-p" onclick="doSave()">保存</button></div>
-</div>
-</div>
+<div class="modal-bg" id="save-modal"><div class="modal"><h3>💾 保存为我的模板</h3><div class="field"><label>模板名称</label><input type="text" id="sv-name" placeholder="我的自定义模板"></div><div class="field"><label>描述 (可选)</label><input type="text" id="sv-desc" placeholder="精简分流 + 特殊规则"></div><div class="row"><button class="btn" onclick="hideSaveModal()">取消</button><button class="btn btn-p" onclick="doSave()">保存</button></div></div></div>
 <script>
-var PRESETS=[
-{id:'geo',name:'GeoSite \u6A21\u677F',desc:'GeoSite / GeoIP \u89C4\u5219\u5206\u6D41',icon:'\u{1F4E1}',url:'https://raw.githubusercontent.com/paooloin/clash-rules/refs/heads/main/config/geo.yaml'},
-{id:'ruleset',name:'\u89C4\u5219\u96C6\u6A21\u677F',desc:'Rule-Set \u89C4\u5219\u96C6\u5206\u6D41',icon:'\u{1F4E6}',url:'https://raw.githubusercontent.com/paooloin/clash-rules/refs/heads/main/config/%E8%A7%84%E5%88%99%E9%9B%86.yaml'}
-];
+var PRESETS=[{id:'geo',name:'GeoSite \u6A21\u677F',desc:'GeoSite / GeoIP \u89C4\u5219\u5206\u6D41',icon:'\u{1F4E1}',url:'https://raw.githubusercontent.com/paooloin/clash-rules/refs/heads/main/config/geo.yaml'},{id:'ruleset',name:'\u89C4\u5219\u96C6\u6A21\u677F',desc:'Rule-Set \u89C4\u5219\u96C6\u5206\u6D41',icon:'\u{1F4E6}',url:'https://raw.githubusercontent.com/paooloin/clash-rules/refs/heads/main/config/%E8%A7%84%E5%88%99%E9%9B%86.yaml'}];
 var EMOJIS=['\u{1F436}','\u{1F431}','\u{1F98A}','\u{1F43C}','\u{1F42F}','\u{1F981}','\u{1F42E}','\u{1F437}','\u{1F438}','\u{1F435}','\u{1F414}','\u{1F427}','\u{1F426}','\u{1F985}','\u{1F986}','\u{1F420}','\u{1F980}','\u{1F419}','\u{1F41D}','\u{1F98B}','\u{1F338}','\u{1F33B}','\u{1F525}','\u2B50','\u{1F48E}','\u{1F3AF}','\u{1F3AA}','\u{1F3A8}','\u{1F340}','\u{1F308}'];
-var REGIONS=[
-{id:'hk',label:'\u{1F1ED}\u{1F1F0} \u9999\u6E2F',keywords:['\u{1F1ED}\u{1F1F0}','\u6E2F','HK','Hong','HKG','HKT']},
-{id:'tw',label:'\u{1F1F9}\u{1F1FC} \u53F0\u6E7E',keywords:['\u{1F1E8}\u{1F1F3}','\u{1F1FC}\u{1F1F8}','\u{1F1F9}\u{1F1FC}','\u53F0','\u65B0\u7AF9','\u4E2D\u83EF\u96FB\u4FE1','\u65B0\u5317','\u5F70\u5316','TW','Taiwan']},
-{id:'jp',label:'\u{1F1EF}\u{1F1F5} \u65E5\u672C',keywords:['\u{1F1EF}\u{1F1F5}','\u65E5','\u4E1C\u4EAC','\u5927\u962A','\u54C1\u5DDD','\u57FC\u7389','JP','Japan']},
-{id:'sg',label:'\u{1F1F8}\u{1F1EC} \u65B0\u52A0\u5761',keywords:['\u{1F1F8}\u{1F1EC}','\u65B0','\u72EE\u57CE','SG','Singapore']},
-{id:'us',label:'\u{1F1FA}\u{1F1F8} \u7F8E\u56FD',keywords:['\u{1F1FA}\u{1F1F8}','\u7F8E','US','America','United States','UnitedState','Los Angeles','Chicago','Ashburn','Seattle','Kansas']},
-{id:'kr',label:'\u{1F1F0}\u{1F1F7} \u97E9\u56FD',keywords:['\u{1F1F0}\u{1F1F7}','\u97E9','KR','Korea','\u9996\u5C14','Seoul']},
-{id:'de',label:'\u{1F1E9}\u{1F1EA} \u5FB7\u56FD',keywords:['\u{1F1E9}\u{1F1EA}','\u5FB7','DE','Germany']},
-{id:'gb',label:'\u{1F1EC}\u{1F1E7} \u82F1\u56FD',keywords:['\u{1F1EC}\u{1F1E7}','\u82F1','UK','GB','Britain','London']},
-{id:'au',label:'\u{1F1E6}\u{1F1FA} \u6FB3\u6D32',keywords:['\u{1F1E6}\u{1F1FA}','\u6FB3','AU','Australia','Sydney']},
-{id:'ca',label:'\u{1F1E8}\u{1F1E6} \u52A0\u62FF\u5927',keywords:['\u{1F1E8}\u{1F1E6}','\u52A0\u62FF\u5927','CA','Canada']},
-{id:'in',label:'\u{1F1EE}\u{1F1F3} \u5370\u5EA6',keywords:['\u{1F1EE}\u{1F1F3}','\u5370\u5EA6','IN','India','Mumbai']},
-{id:'th',label:'\u{1F1F9}\u{1F1ED} \u6CF0\u56FD',keywords:['\u{1F1F9}\u{1F1ED}','\u6CF0','TH','Thailand']},
-{id:'vn',label:'\u{1F1FB}\u{1F1F3} \u8D8A\u5357',keywords:['\u{1F1FB}\u{1F1F3}','\u8D8A\u5357','VN','Vietnam']},
-{id:'tr',label:'\u{1F1F9}\u{1F1F7} \u571F\u8033\u5176',keywords:['\u{1F1F9}\u{1F1F7}','\u571F\u8033\u5176','TR','Turkey']},
-{id:'ru',label:'\u{1F1F7}\u{1F1FA} \u4FC4\u7F57\u65AF',keywords:['\u{1F1F7}\u{1F1FA}','\u4FC4','RU','Russia']},
-{id:'ph',label:'\u{1F1F5}\u{1F1ED} \u83F2\u5F8B\u5BBE',keywords:['\u{1F1F5}\u{1F1ED}','\u83F2','PH','Philippines']}
-];
+var REGIONS=[{id:'hk',label:'\u{1F1ED}\u{1F1F0} \u9999\u6E2F',keywords:['\u{1F1ED}\u{1F1F0}','\u6E2F','HK','Hong','HKG','HKT']},{id:'tw',label:'\u{1F1F9}\u{1F1FC} \u53F0\u6E7E',keywords:['\u{1F1E8}\u{1F1F3}','\u{1F1FC}\u{1F1F8}','\u{1F1F9}\u{1F1FC}','\u53F0','\u65B0\u7AF9','\u4E2D\u83EF\u96FB\u4FE1','\u65B0\u5317','\u5F70\u5316','TW','Taiwan']},{id:'jp',label:'\u{1F1EF}\u{1F1F5} \u65E5\u672C',keywords:['\u{1F1EF}\u{1F1F5}','\u65E5','\u4E1C\u4EAC','\u5927\u962A','\u54C1\u5DDD','\u57FC\u7389','JP','Japan']},{id:'sg',label:'\u{1F1F8}\u{1F1EC} \u65B0\u52A0\u5761',keywords:['\u{1F1F8}\u{1F1EC}','\u65B0','\u72EE\u57CE','SG','Singapore']},{id:'us',label:'\u{1F1FA}\u{1F1F8} \u7F8E\u56FD',keywords:['\u{1F1FA}\u{1F1F8}','\u7F8E','US','America','United States','UnitedState','Los Angeles','Chicago','Ashburn','Seattle','Kansas']},{id:'kr',label:'\u{1F1F0}\u{1F1F7} \u97E9\u56FD',keywords:['\u{1F1F0}\u{1F1F7}','\u97E9','KR','Korea','\u9996\u5C14','Seoul']},{id:'de',label:'\u{1F1E9}\u{1F1EA} \u5FB7\u56FD',keywords:['\u{1F1E9}\u{1F1EA}','\u5FB7','DE','Germany']},{id:'gb',label:'\u{1F1EC}\u{1F1E7} \u82F1\u56FD',keywords:['\u{1F1EC}\u{1F1E7}','\u82F1','UK','GB','Britain','London']},{id:'au',label:'\u{1F1E6}\u{1F1FA} \u6FB3\u6D32',keywords:['\u{1F1E6}\u{1F1FA}','\u6FB3','AU','Australia','Sydney']},{id:'ca',label:'\u{1F1E8}\u{1F1E6} \u52A0\u62FF\u5927',keywords:['\u{1F1E8}\u{1F1E6}','\u52A0\u62FF\u5927','CA','Canada']},{id:'in',label:'\u{1F1EE}\u{1F1F3} \u5370\u5EA6',keywords:['\u{1F1EE}\u{1F1F3}','\u5370\u5EA6','IN','India','Mumbai']},{id:'th',label:'\u{1F1F9}\u{1F1ED} \u6CF0\u56FD',keywords:['\u{1F1F9}\u{1F1ED}','\u6CF0','TH','Thailand']},{id:'vn',label:'\u{1F1FB}\u{1F1F3} \u8D8A\u5357',keywords:['\u{1F1FB}\u{1F1F3}','\u8D8A\u5357','VN','Vietnam']},{id:'tr',label:'\u{1F1F9}\u{1F1F7} \u571F\u8033\u5176',keywords:['\u{1F1F9}\u{1F1F7}','\u571F\u8033\u5176','TR','Turkey']},{id:'ru',label:'\u{1F1F7}\u{1F1FA} \u4FC4\u7F57\u65AF',keywords:['\u{1F1F7}\u{1F1FA}','\u4FC4','RU','Russia']},{id:'ph',label:'\u{1F1F5}\u{1F1ED} \u83F2\u5F8B\u5BBE',keywords:['\u{1F1F5}\u{1F1ED}','\u83F2','PH','Philippines']}];
 var LS_KEY='mihomo_user_tpls';
 var S={tpl:'',tplSrc:null,subs:[],chainOn:false,srcType:'filter',epNodes:[],epSel:new Set(),selNodes:new Set(),selRegions:new Set(),regexManual:false};
 var subIdC=0,pCache={};
 var filterExcluded=new Set();
-var clSelRegions=new Set();
-var clRegexManual=false;
+var manualFilterSelected=new Set();
+var chainLinks=[],chainLinkIdC=0;
+var clSelRegions=new Set(),clRegexManual=false;
 
 function $(id){return document.getElementById(id)}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -310,23 +238,33 @@ function qn(n){if(/[,\[\]{}]/.test(n)||/:\s/.test(n)||/:$/.test(n)||n.trim()!==n
 function pRe(s){var p=s,f='';var m=p.match(/^\(\?([imsx]+)\)/);if(m){f=m[1];p=p.substring(m[0].length)}return new RegExp(p,f)}
 function rE(){return EMOJIS[Math.floor(Math.random()*EMOJIS.length)]}
 
-// ===== Region filter (src-filter) =====
+// ===== Regions =====
 function renderRegions(){$('region-grid').innerHTML=REGIONS.map(function(r){return'<div class="region-chip'+(S.selRegions.has(r.id)?' on':'')+'" onclick="toggleRegion(\''+r.id+'\')">'+r.label+'</div>'}).join('')}
 function toggleRegion(id){if(S.selRegions.has(id))S.selRegions.delete(id);else S.selRegions.add(id);S.regexManual=false;buildRegex();renderRegions()}
-function buildRegex(){if(S.regexManual)return;if(!S.selRegions.size){$('f-regex').value='';prevFilter();return}var allKw=[];S.selRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)allKw=allKw.concat(r.keywords)});$('f-regex').value='(?i)('+allKw.join('|')+')';prevFilter()}
+function buildRegex(){if(S.regexManual)return;if(!S.selRegions.size){$('f-regex').value='';prevFilter();return}var kw=[];S.selRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)kw=kw.concat(r.keywords)});$('f-regex').value='(?i)('+kw.join('|')+')';prevFilter()}
 function onRegexManualEdit(){S.regexManual=true;prevFilter()}
-
-// ===== Region filter (src-newlink cl-filter) =====
 function renderClRegions(){var el=$('cl-region-grid');if(!el)return;el.innerHTML=REGIONS.map(function(r){return'<div class="region-chip'+(clSelRegions.has(r.id)?' on':'')+'" onclick="toggleClRegion(\''+r.id+'\')">'+r.label+'</div>'}).join('')}
 function toggleClRegion(id){if(clSelRegions.has(id))clSelRegions.delete(id);else clSelRegions.add(id);clRegexManual=false;buildClRegex();renderClRegions()}
-function buildClRegex(){if(clRegexManual)return;if(!clSelRegions.size){$('cl-filter').value='';return}var allKw=[];clSelRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)allKw=allKw.concat(r.keywords)});$('cl-filter').value='(?i)('+allKw.join('|')+')'}
+function buildClRegex(){if(clRegexManual)return;if(!clSelRegions.size){$('cl-filter').value='';return}var kw=[];clSelRegions.forEach(function(id){var r=REGIONS.find(function(x){return x.id===id});if(r)kw=kw.concat(r.keywords)});$('cl-filter').value='(?i)('+kw.join('|')+')'}
 function onClFilterManualEdit(){clRegexManual=true}
 
-// ===== Filter node list with checkbox =====
-function prevFilter(){var all=getAFN();if(S.srcType!=='filter'||!all.length){$('f-prev').classList.add('hide');filterExcluded.clear();return}var fs=$('f-regex').value.trim();if(!fs){$('f-prev').classList.add('hide');filterExcluded.clear();return}try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});$('f-prev').classList.remove('hide');$('f-cnt').textContent=matched.length;var matchedNames=new Set(matched.map(function(n){return n.name}));filterExcluded.forEach(function(name){if(!matchedNames.has(name))filterExcluded.delete(name)});renderFilterNodes()}catch(e){$('f-prev').classList.add('hide')}}
-function renderFilterNodes(){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs){$('f-list').innerHTML='';return}try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});var q=$('f-search')?$('f-search').value.toLowerCase():'';var filtered=matched.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1});$('f-list').innerHTML=filtered.length?filtered.map(function(n){var id='fm'+eid(n.name);var checked=!filterExcluded.has(n.name);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(checked?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join(''):'<div class="empty">\u65E0\u5339\u914D</div>';$('f-list').querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(!cb.checked)filterExcluded.add(cb.dataset.name);else filterExcluded.delete(cb.dataset.name);updateFSelCt()}});updateFSelCt()}catch(e){$('f-list').innerHTML=''}}
-function updateFSelCt(){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs)return;try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});var selected=matched.filter(function(n){return!filterExcluded.has(n.name)});var el=$('f-sel-ct');if(el)el.textContent=selected.length+' / '+matched.length}catch(e){}}
-function allFilterNodes(v){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs)return;try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&re.test(n.name)});filterExcluded.clear();if(!v)matched.forEach(function(n){filterExcluded.add(n.name)});renderFilterNodes()}catch(e){}}
+// ===== Chain links (multiple) =====
+function addChainLink(){chainLinks.push({id:chainLinkIdC++,name:'\u94FE\u5F0F\u8BA2\u9605'+(chainLinks.length+1),url:'',prefix:'',interval:'manual'});renderChainLinks()}
+function rmChainLink(id){chainLinks=chainLinks.filter(function(c){return c.id!==id});renderChainLinks()}
+function updChainLink(id,k,v){var c=chainLinks.find(function(x){return x.id===id});if(c)c[k]=v}
+function renderChainLinks(){var c=$('cl-list');if(!chainLinks.length){c.innerHTML='<div class="empty">\u8BF7\u6DFB\u52A0\u81F3\u5C11\u4E00\u4E2A\u8BA2\u9605\u94FE\u63A5</div>';return}c.innerHTML=chainLinks.map(function(s){return'<div class="sub-card" style="padding:12px"><div class="row-2"><div class="field"><label>\u8BA2\u9605\u540D\u79F0</label><input type="text" value="'+ea(s.name)+'" onchange="updChainLink('+s.id+',\'name\',this.value)"></div><div class="field"><label>\u8282\u70B9\u524D\u7F00 (\u7559\u7A7A\u81EA\u52A8)</label><input type="text" value="'+ea(s.prefix)+'" placeholder="\u7559\u7A7A\u81EA\u52A8: \u540D\u79F0+emoji" onchange="updChainLink('+s.id+',\'prefix\',this.value)"></div></div><div class="field"><label>URL</label><input type="url" value="'+ea(s.url||'')+'" placeholder="https://..." onchange="updChainLink('+s.id+',\'url\',this.value)"></div><div class="field"><label>\u66F4\u65B0\u7B56\u7565</label><select onchange="updChainLink('+s.id+',\'interval\',this.value)"><option value="manual"'+(s.interval==='manual'?' selected':'')+'>\u4E0D\u81EA\u52A8\u66F4\u65B0</option><option value="daily"'+(s.interval==='daily'?' selected':'')+'>24h \u81EA\u52A8</option></select></div><button class="btn btn-err btn-xs sub-rm" onclick="rmChainLink('+s.id+')">\u2715</button></div>'}).join('')}
+
+// ===== Manual filter =====
+function getAvailableForManual(){return getAFN().filter(function(n){return!S.selNodes.has(n.name)})}
+function renderManualFilterNodes(){var avail=getAvailableForManual();var c=$('fm-list');if(!avail.length){c.innerHTML='<div class="empty">\u8BF7\u5148\u6DFB\u52A0\u8BA2\u9605\u6587\u4EF6</div>';var el=$('fm-sel-ct');if(el)el.textContent='0 / 0';return}var q=$('fm-search')?$('fm-search').value.toLowerCase():'';var f=avail.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1});c.innerHTML=f.length?f.map(function(n){var id='mf'+eid(n.name);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(manualFilterSelected.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join(''):'<div class="empty">\u65E0\u5339\u914D</div>';c.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(cb.checked)manualFilterSelected.add(cb.dataset.name);else manualFilterSelected.delete(cb.dataset.name);updateMfCt();prevFilter()}});updateMfCt()}
+function updateMfCt(){var el=$('fm-sel-ct');if(el)el.textContent=manualFilterSelected.size+' / '+getAvailableForManual().length}
+function allManualFilter(v){manualFilterSelected.clear();if(v)getAvailableForManual().forEach(function(n){manualFilterSelected.add(n.name)});renderManualFilterNodes();prevFilter()}
+
+// ===== Regex filter =====
+function prevFilter(){renderManualFilterNodes();var all=getAFN();if(S.srcType!=='filter'||!all.length){$('f-prev').classList.add('hide');filterExcluded.clear();return}var fs=$('f-regex').value.trim();if(!fs){$('f-prev').classList.add('hide');filterExcluded.clear();return}try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&!manualFilterSelected.has(n.name)&&re.test(n.name)});$('f-prev').classList.remove('hide');$('f-cnt').textContent=matched.length;var mn=new Set(matched.map(function(n){return n.name}));filterExcluded.forEach(function(name){if(!mn.has(name))filterExcluded.delete(name)});renderFilterNodes()}catch(e){$('f-prev').classList.add('hide')}}
+function renderFilterNodes(){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs){$('f-list').innerHTML='';return}try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&!manualFilterSelected.has(n.name)&&re.test(n.name)});var q=$('f-search')?$('f-search').value.toLowerCase():'';var f=matched.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1});$('f-list').innerHTML=f.length?f.map(function(n){var id='rf'+eid(n.name);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(!filterExcluded.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join(''):'<div class="empty">\u65E0\u5339\u914D</div>';$('f-list').querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(!cb.checked)filterExcluded.add(cb.dataset.name);else filterExcluded.delete(cb.dataset.name);updateFCt()}});updateFCt()}catch(e){$('f-list').innerHTML=''}}
+function updateFCt(){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs)return;try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&!manualFilterSelected.has(n.name)&&re.test(n.name)});var sel=matched.filter(function(n){return!filterExcluded.has(n.name)});var el=$('f-sel-ct');if(el)el.textContent=sel.length+' / '+matched.length}catch(e){}}
+function allFilterNodes(v){var all=getAFN();var fs=$('f-regex').value.trim();if(!fs)return;try{var re=pRe(fs);var matched=all.filter(function(n){return!S.selNodes.has(n.name)&&!manualFilterSelected.has(n.name)&&re.test(n.name)});filterExcluded.clear();if(!v)matched.forEach(function(n){filterExcluded.add(n.name)});renderFilterNodes()}catch(e){}}
 
 // ===== Template =====
 function renderPresets(){$('preset-grid').innerHTML=PRESETS.map(function(p){return'<div class="tpl-chip'+(S.tplSrc==='p:'+p.id?' active':'')+'" onclick="loadPreset(\''+p.id+'\')"><span class="tc-icon">'+p.icon+'</span><span class="tc-name">'+esc(p.name)+'</span><span class="tc-desc">'+esc(p.desc)+'</span>'+(pCache[p.id]?'':'<span class="tc-badge">\u8FDC\u7A0B</span>')+'</div>'}).join('')}
@@ -344,7 +282,7 @@ function onTplInput(){S.tpl=$('tpl-c').value;S.tplSrc=null;updSt();renderPresets
 function clearTpl(){$('tpl-c').value='';S.tpl='';S.tplSrc=null;updSt();renderPresets();renderUserTpls()}
 $('tpl-f').onchange=async function(){var f=this.files[0];if(!f)return;$('tpl-c').value=await f.text();S.tpl=$('tpl-c').value;S.tplSrc=null;updSt();renderPresets();renderUserTpls()};
 
-// ===== YAML Parser =====
+// ===== YAML =====
 function findPS(c){var L=c.split('\n');var si=-1;for(var i=0;i<L.length;i++)if(/^proxies:\s*(?:#.*)?$/.test(L[i])){si=i+1;break}if(si===-1)return null;var ei=L.length;for(var i=si;i<L.length;i++){var l=L[i];if(l.trim()===''||l.trimStart().startsWith('#'))continue;if(!/^\s/.test(l)){ei=i;break}}return{sL:si-1,cS:si,cE:ei,raw:L.slice(si,ei)}}
 function parseN(raw){var nodes=[];var i=0;while(i<raw.length){while(i<raw.length){var t=raw[i].trim();if(t===''||t.startsWith('#'))i++;else break}if(i>=raw.length)break;var line=raw[i],tr=line.trim();if(!tr.startsWith('-')){i++;continue}if(/^-\s*\{/.test(tr)){var bc=0,cl=[],j=i;while(j<raw.length){var l=raw[j];cl.push(l);for(var k=0;k<l.length;k++){if(l[k]==='{')bc++;else if(l[k]==='}')bc--}if(bc===0)break;j++}var ft=cl.join('\n');var nm=ft.match(/name:\s*(?:'([^']*(?:''[^']*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|([^,}\n]+))/);if(nm){var n;if(nm[1]!==undefined)n=nm[1].replace(/''/g,"'");else if(nm[2]!==undefined)n=nm[2].replace(/\\(.)/g,'$1');else n=nm[3].trim();nodes.push({name:n,fmt:'f',raw:cl})}i=j+1}else{var bi=line.search(/\S/);var cl=[line];var nn=null;var sm=tr.match(/^-\s*name:\s*(?:'([^']*(?:''[^']*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|(.+))$/);if(sm){if(sm[1]!==undefined)nn=sm[1].replace(/''/g,"'");else if(sm[2]!==undefined)nn=sm[2].replace(/\\(.)/g,'$1');else nn=sm[3].trim()}i++;while(i<raw.length){var nx=raw[i],nt=nx.trim();if(nt===''){var k2=i+1;while(k2<raw.length&&raw[k2].trim()==='')k2++;if(k2>=raw.length||raw[k2].search(/\S/)<=bi)break;cl.push(nx);i++;continue}if(nx.search(/\S/)<=bi)break;if(!nn){var m2=nt.match(/^name:\s*(?:'([^']*(?:''[^']*)*)'|"([^"\\]*(?:\\.[^"\\]*)*)"|(.+))$/);if(m2){if(m2[1]!==undefined)nn=m2[1].replace(/''/g,"'");else if(m2[2]!==undefined)nn=m2[2].replace(/\\(.)/g,'$1');else nn=m2[3].trim()}}cl.push(nx);i++}if(nn)nodes.push({name:nn,fmt:'b',raw:cl})}}return nodes}
 function addDial(node){if(node.fmt==='f'){var ft=node.raw.join('\n');var lb=ft.lastIndexOf('}');if(lb===-1)return node.raw;var bef=ft.substring(0,lb).replace(/\s+$/,'');var aft=ft.substring(lb);var sep=bef.endsWith(',')?(' '):(bef.endsWith('{')?(' '):(', '));return(bef+sep+'dialer-proxy: \u{1F500} \u94FE\u5F0F\u4EE3\u7406 '+aft).split('\n')}else{var pl=node.raw.filter(function(l){var t=l.trim();return t&&!t.startsWith('-')&&!t.startsWith('#')});var ind=pl.length>0?pl[0].match(/^(\s*)/)[1]:'    ';var li=node.raw.length-1;while(li>=0&&(node.raw[li].trim()===''||node.raw[li].trim().startsWith('#')))li--;var r=node.raw.slice();r.splice(li+1,0,ind+'dialer-proxy: \u{1F500} \u94FE\u5F0F\u4EE3\u7406');return r}}
@@ -352,22 +290,22 @@ function renameN(node,nn){if(node.fmt==='f')return node.raw.join('\n').replace(/
 
 // ===== Subs =====
 function addSubFile(){var inp=document.createElement('input');inp.type='file';inp.multiple=true;inp.onchange=async function(){for(var i=0;i<inp.files.length;i++){var f=inp.files[i];var txt=await f.text();var id=subIdC++;var sec=findPS(txt);var nodes=sec?parseN(sec.raw):[];S.subs.push({id:id,type:'file',fileName:f.name,content:txt,nodes:nodes,prefix:''})}renderSubs()};inp.click()}
-function addSubLink(){var id=subIdC++;var lc=S.subs.filter(function(s){return s.type==='link'}).length;S.subs.push({id:id,type:'link',name:'\u8BA2\u9605'+(lc+1),url:'',prefix:'',interval:'manual',filter:'',nodes:[]});renderSubs()}
+function addSubLink(){var id=subIdC++;var lc=S.subs.filter(function(s){return s.type==='link'}).length;S.subs.push({id:id,type:'link',name:'\u8BA2\u9605'+(lc+1),url:'',prefix:'',interval:'manual',filter:'',useChain:false,nodes:[]});renderSubs()}
 function rmSub(id){S.subs=S.subs.filter(function(s){return s.id!==id});renderSubs()}
 function updSub(id,k,v){var s=S.subs.find(function(x){return x.id===id});if(s)s[k]=v}
 function renderSubs(){
 var c=$('sub-list');if(!S.subs.length){c.innerHTML='<div class="empty">\u5C1A\u672A\u6DFB\u52A0\u8BA2\u9605\u6E90</div>';$('sub-st').textContent='0 \u4E2A\u6E90';$('sub-st').className='badge';refreshAll();return}
 var h='';for(var i=0;i<S.subs.length;i++){var s=S.subs[i];
 if(s.type==='file')h+='<div class="sub-card"><div class="sub-head"><span class="sub-tag">\u{1F4C1} '+esc(s.fileName)+'</span><span class="badge badge-ok">'+s.nodes.length+' \u8282\u70B9</span></div><div class="field"><label>\u8282\u70B9\u524D\u7F00 (\u7559\u7A7A\u4E0D\u6DFB\u52A0)</label><input type="text" value="'+ea(s.prefix)+'" placeholder="\u7559\u7A7A\u5219\u4FDD\u6301\u539F\u59CB\u8282\u70B9\u540D" onchange="updSub('+s.id+',\'prefix\',this.value)"></div><button class="btn btn-err btn-sm sub-rm" onclick="rmSub('+s.id+')">\u2715</button></div>';
-else h+='<div class="sub-card"><div class="sub-head"><span class="sub-tag">\u{1F517} \u8BA2\u9605\u94FE\u63A5</span></div><div class="row-2"><div class="field"><label>\u8BA2\u9605\u540D\u79F0</label><input type="text" value="'+ea(s.name)+'" onchange="updSub('+s.id+',\'name\',this.value)"></div><div class="field"><label>\u8282\u70B9\u524D\u7F00 (\u7559\u7A7A\u81EA\u52A8\u751F\u6210)</label><input type="text" value="'+ea(s.prefix)+'" placeholder="\u7559\u7A7A\u81EA\u52A8: \u8BA2\u9605\u540D+emoji" onchange="updSub('+s.id+',\'prefix\',this.value)"></div></div><div class="field"><label>URL</label><input type="url" value="'+ea(s.url||'')+'" placeholder="https://..." onchange="updSub('+s.id+',\'url\',this.value)"></div><div class="row-2"><div class="field"><label>\u66F4\u65B0\u7B56\u7565</label><select onchange="updSub('+s.id+',\'interval\',this.value)"><option value="manual"'+(s.interval==='manual'?' selected':'')+'>\u4E0D\u81EA\u52A8\u66F4\u65B0</option><option value="daily"'+(s.interval==='daily'?' selected':'')+'>24h \u81EA\u52A8</option></select></div><div class="field"><label>\u6B63\u5219\u8FC7\u6EE4</label><input type="text" value="'+ea(s.filter||'')+'" placeholder="\u7559\u7A7A\u5168\u90E8" onchange="updSub('+s.id+',\'filter\',this.value)"></div></div><button class="btn btn-err btn-sm sub-rm" onclick="rmSub('+s.id+')">\u2715</button></div>'}
+else h+='<div class="sub-card"><div class="sub-head"><span class="sub-tag">\u{1F517} \u8BA2\u9605\u94FE\u63A5</span></div><div class="row-2"><div class="field"><label>\u8BA2\u9605\u540D\u79F0</label><input type="text" value="'+ea(s.name)+'" onchange="updSub('+s.id+',\'name\',this.value)"></div><div class="field"><label>\u8282\u70B9\u524D\u7F00 (\u7559\u7A7A\u81EA\u52A8\u751F\u6210)</label><input type="text" value="'+ea(s.prefix)+'" placeholder="\u7559\u7A7A\u81EA\u52A8: \u8BA2\u9605\u540D+emoji" onchange="updSub('+s.id+',\'prefix\',this.value)"></div></div><div class="field"><label>URL</label><input type="url" value="'+ea(s.url||'')+'" placeholder="https://..." onchange="updSub('+s.id+',\'url\',this.value)"></div><div class="row-2"><div class="field"><label>\u66F4\u65B0\u7B56\u7565</label><select onchange="updSub('+s.id+',\'interval\',this.value)"><option value="manual"'+(s.interval==='manual'?' selected':'')+'>\u4E0D\u81EA\u52A8\u66F4\u65B0</option><option value="daily"'+(s.interval==='daily'?' selected':'')+'>24h \u81EA\u52A8</option></select></div><div class="field"><label>\u6B63\u5219\u8FC7\u6EE4</label><input type="text" value="'+ea(s.filter||'')+'" placeholder="\u7559\u7A7A\u5168\u90E8" onchange="updSub('+s.id+',\'filter\',this.value)"></div></div><div class="toggle-w" style="margin-top:8px;margin-bottom:0"><label class="tgl"><input type="checkbox" '+(s.useChain?'checked':'')+' onchange="updSub('+s.id+',\'useChain\',this.checked)"><span class="tgl-s"></span></label><label>\u542F\u7528\u94FE\u5F0F\u4EE3\u7406 (dialer-proxy)</label></div><button class="btn btn-err btn-sm sub-rm" onclick="rmSub('+s.id+')">\u2715</button></div>'}
 c.innerHTML=h;var fc=S.subs.filter(function(s){return s.type==='file'}).reduce(function(a,s){return a+s.nodes.length},0);var lc=S.subs.filter(function(s){return s.type==='link'}).length;
 var t=[];if(fc)t.push(fc+' \u8282\u70B9');if(lc)t.push(lc+' \u94FE\u63A5');$('sub-st').textContent=S.subs.length+' \u4E2A\u6E90'+(t.length?' \u00B7 '+t.join(', '):'');$('sub-st').className='badge badge-ok';refreshAll()}
 function getAFN(){var a=[];for(var i=0;i<S.subs.length;i++){var s=S.subs[i];if(s.type!=='file')continue;for(var j=0;j<s.nodes.length;j++)a.push({name:s.nodes[j].name,fmt:s.nodes[j].fmt,raw:s.nodes[j].raw,subId:s.id,subName:s.fileName})}return a}
-function refreshAll(){renderNodes();prevFilter()}
-function renderNodes(){var c=$('nl'),all=getAFN();if(!all.length){c.innerHTML='<div class="empty">\u8BF7\u5148\u6DFB\u52A0\u8BA2\u9605\u6587\u4EF6</div>';$('sel-ct').textContent='0 / 0';return}var q=($('ns').value||'').toLowerCase();c.innerHTML=all.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1}).map(function(n){var id=eid(n.name+'_'+n.subId);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(S.selNodes.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join('');c.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(cb.checked)S.selNodes.add(cb.dataset.name);else S.selNodes.delete(cb.dataset.name);$('sel-ct').textContent=S.selNodes.size+' / '+all.length;prevFilter()}});$('sel-ct').textContent=S.selNodes.size+' / '+all.length}
-function allNodes(v){S.selNodes.clear();if(v)getAFN().forEach(function(n){S.selNodes.add(n.name)});renderNodes();prevFilter()}
+function refreshAll(){renderNodes();renderManualFilterNodes();prevFilter()}
+function renderNodes(){var c=$('nl'),all=getAFN();if(!all.length){c.innerHTML='<div class="empty">\u8BF7\u5148\u6DFB\u52A0\u8BA2\u9605\u6587\u4EF6</div>';$('sel-ct').textContent='0 / 0';return}var q=($('ns').value||'').toLowerCase();c.innerHTML=all.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1}).map(function(n){var id=eid(n.name+'_'+n.subId);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(S.selNodes.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join('');c.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(cb.checked)S.selNodes.add(cb.dataset.name);else S.selNodes.delete(cb.dataset.name);$('sel-ct').textContent=S.selNodes.size+' / '+all.length;renderManualFilterNodes();prevFilter()}});$('sel-ct').textContent=S.selNodes.size+' / '+all.length}
+function allNodes(v){S.selNodes.clear();if(v)getAFN().forEach(function(n){S.selNodes.add(n.name)});renderNodes();renderManualFilterNodes();prevFilter()}
 function toggleChain(){S.chainOn=$('chain-on').checked;$('chain-cfg').classList.toggle('hide',!S.chainOn);$('chain-st').textContent=S.chainOn?'\u5DF2\u542F\u7528':'\u672A\u542F\u7528';$('chain-st').className='badge'+(S.chainOn?' badge-ok':'')}
-function switchSrc(t){S.srcType=t;document.querySelectorAll('#src-tabs .tab').forEach(function(x){x.classList.toggle('on',x.dataset.s===t)});document.querySelectorAll('.src-pane').forEach(function(x){x.classList.add('hide')});$('src-'+t).classList.remove('hide');if(t==='filter')prevFilter()}
+function switchSrc(t){S.srcType=t;document.querySelectorAll('#src-tabs .tab').forEach(function(x){x.classList.toggle('on',x.dataset.s===t)});document.querySelectorAll('.src-pane').forEach(function(x){x.classList.add('hide')});$('src-'+t).classList.remove('hide');if(t==='filter'){renderManualFilterNodes();prevFilter()}}
 function onEpChange(){var c=$('ep-c').value;S.epNodes=[];S.epSel.clear();if(!c.trim()){$('ep-info').classList.add('hide');return}var raw;if(/^proxies:\s*$/m.test(c)){var s=findPS(c);raw=s?s.raw:c.split('\n')}else raw=c.split('\n');S.epNodes=parseN(raw);if(!S.epNodes.length){$('ep-info').classList.add('hide');return}$('ep-info').classList.remove('hide');$('ep-cnt').textContent=S.epNodes.length;renderEp()}
 function renderEp(){var c=$('ep-list'),q=($('ep-s').value||'').toLowerCase();var f=S.epNodes.filter(function(n){return n.name.toLowerCase().indexOf(q)!==-1});if(!f.length){c.innerHTML='<div class="empty">\u65E0\u5339\u914D</div>';return}c.innerHTML=f.map(function(n){var id='ep'+eid(n.name);return'<div class="nitem"><input type="checkbox" id="'+id+'" data-name="'+ea(n.name)+'" '+(S.epSel.has(n.name)?'checked':'')+'><label for="'+id+'" class="nn">'+esc(n.name)+'</label></div>'}).join('');c.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.onchange=function(){if(cb.checked)S.epSel.add(cb.dataset.name);else S.epSel.delete(cb.dataset.name)}})}
 function allEp(v){S.epSel.clear();if(v)S.epNodes.forEach(function(n){S.epSel.add(n.name)});renderEp()}
@@ -379,29 +317,17 @@ while(i<lines.length){
 if(/^proxy-providers:\s*(?:#.*)?$/.test(lines[i])){
 result.push(lines[i]);i++;
 while(i<lines.length){
-var line=lines[i];
-if(line.trim()===''||line.trim().startsWith('#')){
-// skip orphan comments/blanks inside provider section, peek ahead
-var peek=i;while(peek<lines.length&&(lines[peek].trim()===''||lines[peek].trim().startsWith('#')))peek++;
-if(peek>=lines.length||!/^\s/.test(lines[peek])){i=peek;break}
-// there's more provider content, skip these lines for now
-i=peek;continue}
-var nameMatch=line.match(/^  (\S[^:]*?):\s*$/);
-if(!nameMatch){if(!/^\s/.test(line))break;result.push(lines[i]);i++;continue}
+if(lines[i].trim()===''||lines[i].trim().startsWith('#')){var pk=i;while(pk<lines.length&&(lines[pk].trim()===''||lines[pk].trim().startsWith('#')))pk++;if(pk>=lines.length||!/^\s/.test(lines[pk])){i=pk;break}i=pk;continue}
+var nm=lines[i].match(/^  (\S[^:]*?):\s*$/);
+if(!nm){if(!/^\s/.test(lines[i]))break;result.push(lines[i]);i++;continue}
 var block=[lines[i]];i++;
 while(i<lines.length&&/^    /.test(lines[i])){block.push(lines[i]);i++}
-// skip trailing comments and blanks after this provider
 while(i<lines.length&&(lines[i].trim()===''||lines[i].trim().startsWith('#')))i++;
-var hasEmptyUrl=block.some(function(l){return/^\s*url:\s*""\s*$/.test(l)||/^\s*url:\s*''\s*$/.test(l)||/^\s*url:\s*$/.test(l)});
-if(hasEmptyUrl)continue;
+if(block.some(function(l){return/^\s*url:\s*""\s*$/.test(l)||/^\s*url:\s*''\s*$/.test(l)||/^\s*url:\s*$/.test(l)}))continue;
 result.push.apply(result,block);result.push('')}
 continue}
 result.push(lines[i]);i++}
-// remove proxy-providers: if empty
-for(var j=0;j<result.length;j++){
-if(/^proxy-providers:\s*(?:#.*)?$/.test(result[j])){
-var hasP=false;for(var k=j+1;k<result.length;k++){if(result[k].trim()===''||result[k].trim().startsWith('#'))continue;if(/^\s/.test(result[k])){hasP=true;break}break}
-if(!hasP){var end=j+1;while(end<result.length&&(result[end].trim()===''||result[end].trim().startsWith('#')))end++;result.splice(j,end-j)}break}}
+for(var j=0;j<result.length;j++){if(/^proxy-providers:\s*(?:#.*)?$/.test(result[j])){var hp=false;for(var k=j+1;k<result.length;k++){if(result[k].trim()===''||result[k].trim().startsWith('#'))continue;if(/^\s/.test(result[k])){hp=true;break}break}if(!hp){var end=j+1;while(end<result.length&&(result[end].trim()===''||result[end].trim().startsWith('#')))end++;result.splice(j,end-j)}break}}
 return result.join('\n')}
 
 // ===== Generate =====
@@ -414,20 +340,15 @@ if(!fS.length&&!lS.length)throw new Error('\u8BF7\u81F3\u5C11\u6DFB\u52A0\u4E00\
 var hasFN=fS.some(function(s){return s.nodes.length>0});
 var allN=[];
 for(var i=0;i<fS.length;i++){var s=fS[i];var pfx=s.prefix;
-for(var j=0;j<s.nodes.length;j++){var n=s.nodes[j];
-var nn=pfx?(pfx+n.name):n.name;
-var nr=pfx?renameN(n,nn):n.raw.slice();
-var ch=S.chainOn&&S.selNodes.has(n.name);
-var fn={name:nn,origName:n.name,fmt:n.fmt,raw:nr};
-if(ch)fn.raw=addDial(fn);allN.push(fn)}}
+for(var j=0;j<s.nodes.length;j++){var n=s.nodes[j];var nn=pfx?(pfx+n.name):n.name;var nr=pfx?renameN(n,nn):n.raw.slice();var ch=S.chainOn&&S.selNodes.has(n.name);var fn={name:nn,origName:n.name,fmt:n.fmt,raw:nr};if(ch)fn.raw=addDial(fn);allN.push(fn)}}
 var result=S.tpl;
 result=cleanEmptyProviders(result);
 if(hasFN){var pL=[];for(var i=0;i<allN.length;i++)pL=pL.concat(allN[i].raw);while(pL.length&&pL[pL.length-1].trim()==='')pL.pop();result=insProxies(result,pL)}else result=rmProxies(result);
 for(var i=0;i<lS.length;i++){var s=lS[i];if(!s.url)throw new Error('\u8BA2\u9605"'+s.name+'"\u6CA1\u6709\u586B\u5199 URL');
-var pfx=s.prefix||(s.name+' '+rE()+' ');
-var anc=s.interval==='daily'?'*h':'*p';
+var pfx=s.prefix||(s.name+' '+rE()+' ');var anc=s.interval==='daily'?'*h':'*p';
 var entry=['  '+s.name+':','    <<: '+anc,'    override:','      additional-prefix: "'+pfx+'"','    url: "'+s.url+'"'];
 if(s.filter)entry.push('    filter: "'+s.filter+'"');
+if(s.useChain&&S.chainOn)entry.push('    dialer-proxy: \u{1F500} \u94FE\u5F0F\u4EE3\u7406');
 result=addProv(result,entry.join('\n'))}
 if(S.chainOn)result=addCC(result,allN);
 $('output').value=result;$('out-sec').classList.remove('hide');
@@ -444,25 +365,28 @@ function addToGrp(y,entry){var aR=/^[ \t]*-[ \t]*\{\s*name:\s*\u{1F500}[ \t]*\u9
 
 function addCC(result,allN){var gc;
 if(S.srcType==='filter'){
+  var manualNodes=allN.filter(function(n){return manualFilterSelected.has(n.origName)});
+  var regexNodes=[];
   var fs=$('f-regex').value.trim();
-  if(!fs)throw new Error('\u8BF7\u586B\u5199\u6B63\u5219\u6216\u9009\u62E9\u5730\u533A');
-  var re=pRe(fs);
-  var m=allN.filter(function(n){return!S.selNodes.has(n.origName)&&re.test(n.name)&&!filterExcluded.has(n.origName)});
-  if(!m.length)throw new Error('\u8FC7\u6EE4\u540E\u65E0\u5339\u914D\u8282\u70B9');
+  if(fs){try{var re=pRe(fs);regexNodes=allN.filter(function(n){return!S.selNodes.has(n.origName)&&!manualFilterSelected.has(n.origName)&&re.test(n.name)&&!filterExcluded.has(n.origName)})}catch(e){}}
+  var seen=new Set();var m=[];
+  manualNodes.concat(regexNodes).forEach(function(n){if(!seen.has(n.name)){seen.add(n.name);m.push(n)}});
+  if(!m.length)throw new Error('\u8BF7\u81F3\u5C11\u9009\u62E9\u4E00\u4E2A\u94FE\u5F0F\u4EE3\u7406\u8282\u70B9');
   gc='  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, proxies: ['+m.map(function(n){return qn(n.name)}).join(', ')+'] }'
 }
 else if(S.srcType==='newlink'){
-  var name=$('cl-name').value.trim()||'\u94FE\u5F0F\u8BA2\u9605';
-  var pfx=$('cl-pfx').value;
-  var url=$('cl-url').value.trim();
-  var intv=$('cl-int').value;
+  if(!chainLinks.length)throw new Error('\u8BF7\u6DFB\u52A0\u81F3\u5C11\u4E00\u4E2A\u94FE\u5F0F\u8BA2\u9605\u94FE\u63A5');
   var filter=$('cl-filter').value.trim();
-  if(!url)throw new Error('\u8BF7\u586B\u5199\u94FE\u5F0F\u4EE3\u7406\u8BA2\u9605 URL');
-  if(!pfx)pfx=name+' '+rE()+' ';
-  var anc=intv==='daily'?'*h':'*p';
-  var provEntry=['  '+name+':','    <<: '+anc,'    override:','      additional-prefix: "'+pfx+'"','    url: "'+url+'"'];
-  result=addProv(result,provEntry.join('\n'));
-  gc=filter?'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+name+'], filter: "'+filter+'" }':'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+name+'] }'
+  var useNames=[];
+  for(var ci=0;ci<chainLinks.length;ci++){
+    var cl=chainLinks[ci];
+    if(!cl.url)throw new Error('\u94FE\u5F0F\u8BA2\u9605"'+cl.name+'"\u6CA1\u6709\u586B\u5199 URL');
+    var pfx=cl.prefix||(cl.name+' '+rE()+' ');
+    var anc=cl.interval==='daily'?'*h':'*p';
+    result=addProv(result,['  '+cl.name+':','    <<: '+anc,'    override:','      additional-prefix: "'+pfx+'"','    url: "'+cl.url+'"'].join('\n'));
+    useNames.push(cl.name)
+  }
+  gc=filter?'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+useNames.join(', ')+'], filter: "'+filter+'" }':'  - { name: \u{1F500} \u94FE\u5F0F\u4EE3\u7406, type: select, use: ['+useNames.join(', ')+'] }'
 }
 else if(S.srcType==='newproxy'){
   var sel=S.epNodes.filter(function(n){return S.epSel.has(n.name)});
@@ -476,7 +400,7 @@ result=addToGrp(result,gc);return result}
 function doCopy(){var t=$('output').value;if(!t)return;navigator.clipboard.writeText(t).then(function(){var b=$('copy-btn'),o=b.innerHTML;b.innerHTML='\u2705 \u5DF2\u590D\u5236';setTimeout(function(){b.innerHTML=o},1500)}).catch(function(){alert('\u590D\u5236\u5931\u8D25')})}
 function doDl(){var t=$('output').value;if(!t)return;var b=new Blob([t],{type:'text/yaml;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='config.yaml';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
 $('save-modal').onclick=function(e){if(e.target===this)hideSaveModal()};
-renderPresets();renderUserTpls();renderRegions();renderClRegions();
+renderPresets();renderUserTpls();renderRegions();renderClRegions();renderChainLinks();
 </script>
 </body>
-  </html>
+</html>
